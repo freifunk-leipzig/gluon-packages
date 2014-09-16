@@ -1,6 +1,6 @@
 @import "html5-doctor-reset-stylesheet.css";
-@import "iconfont/css/animation.css";
-@import "iconfont/css/statuspage.css";
+@import "../iconfont/css/animation.css";
+@import "../iconfont/css/statuspage.css";
 @import "menu.css";
 
 body {
