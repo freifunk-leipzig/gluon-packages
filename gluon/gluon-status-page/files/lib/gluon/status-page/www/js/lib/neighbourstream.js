@@ -125,6 +125,6 @@ define([ "vendor/bacon"
       return out;
     }
 
-    return Bacon.fromPromise(Helper.request(ip, "interfaces")).flatMap(magic);
+    return Helper.request(ip, "interfaces").flatMap(magic);
   }
 })

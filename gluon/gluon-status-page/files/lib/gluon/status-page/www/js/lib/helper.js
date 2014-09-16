@@ -1,29 +1,31 @@
 "use strict";
-define(function () {
+define([ "vendor/bacon" ], function (Bacon) {
   function get(url) {
-    return new Promise(function(resolve, reject) {
+    return Bacon.fromBinder(function(sink) {
       var req = new XMLHttpRequest();
       req.open('GET', url);
 
       req.onload = function() {
-        if (req.status == 200) {
-          resolve(req.response);
-        }
-        else {
-          reject(Error(req.statusText));
-        }
+        if (req.status == 200)
+          sink(new Bacon.Next(req.response));
+        else
+          sink(new Bacon.Error(req.statusText));
+        sink(new Bacon.End());
       };
 
       req.onerror = function() {
-        reject(Error("Network Error"));
+        sink(new Bacon.Error("network error"));
+        sink(new Bacon.End());
       };
 
       req.send();
+
+      return function () {};
     });
   }
 
   function getJSON(url) {
-    return get(url).then(JSON.parse);
+    return get(url).map(JSON.parse);
   }
 
   function buildUrl(ip, object, param) {

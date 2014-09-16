@@ -41,7 +41,7 @@ require([ "vendor/bacon"
                   });
 
   function tryIp(ip) {
-    return Helper.request(ip, "nodeinfo").then(function(d) { return ip; });
+    return Helper.request(ip, "nodeinfo").map(function(d) { return ip; });
   }
 
   var gotoEpoch = 0;
@@ -57,9 +57,7 @@ require([ "vendor/bacon"
     gotoEpoch++;
 
     var addresses = nodeInfo.network.addresses.filter(function (d) { return !/^fe80:/.test(d) });
-    var race = Bacon.fromArray(addresses).flatMap(function (d) {
-      return Bacon.fromPromise(tryIp(d));
-    }).withStateMachine([], function (acc, ev) {
+    var race = Bacon.fromArray(addresses).flatMap(tryIp).withStateMachine([], function (acc, ev) {
       if (ev.isError())
         return [acc.concat(ev.error), []];
       else if (ev.isEnd() && acc.length > 0)
@@ -104,10 +102,14 @@ require([ "vendor/bacon"
     localStorage.nodes = JSON.stringify(out);
   });
 
-  Helper.getJSON(bootstrapUrl).then(function (d) {
+  var bootstrap = Helper.getJSON(bootstrapUrl);
+
+  bootstrap.onError(function (d) {
+    console.log("FIXME bootstrapping failed");
+  });
+
+  bootstrap.onValue(function (d) {
     mgmtBus.pushEvent("nodeinfo", d);
     mgmtBus.pushEvent("goto", d);
-  }, function (d) {
-    console.log("FIXME bootstrapping failed");
   });
 })
